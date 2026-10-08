@@ -1,0 +1,30 @@
+# Local datasets and extracted image files
+data/
+*.jpg
+*.jpeg
+
+# TensorFlow/Keras generated artifacts
+*.keras
+!src/mediapipe_e08_best.keras
+*.h5
+*.ckpt
+*.index
+checkpoint
+
+# Notebook-generated and local runtime files
+.ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local environments and editor files
+.venv/
+venv/
+env/
+.env
+.idea/
+.vscode/
+
+# Colab/Kaggle caches
+.cache/
+kaggle.json

@@ -1,0 +1,8 @@
+services:
+  deepfake-detection:
+    build:
+      context: .
+    ports:
+      - "5000:5000"
+    environment:
+      MODEL_PATH: /models/model.keras

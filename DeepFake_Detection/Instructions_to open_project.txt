@@ -1,0 +1,149 @@
+DEEPFAKE DETECTION PROJECT
+Instructions to open and run the project
+
+Project folder
+--------------
+Open PowerShell in:
+
+D:\git\2nd-year-AI-project-DeepFake_Ditection\Final_Project\DeepFake_Detection
+
+The application uses the included MediaPipe E8 Keras model:
+
+src\mediapipe_e08_best.keras
+
+The web application runs at:
+
+http://127.0.0.1:5000/
+
+
+OPTION 1 - RUN USING DOCKER
+---------------------------
+
+Requirements:
+
+1. Install Docker Desktop.
+2. Start Docker Desktop.
+3. Make sure the Docker Desktop Linux engine is running.
+
+Build the image from the project folder:
+
+docker build -t deepfake-detection .
+
+Start the application:
+
+docker run --rm --name deepfake-detection-runtime -p 5000:5000 deepfake-detection
+
+Open this address in a browser:
+
+http://127.0.0.1:5000/
+
+The model is copied into the Docker image automatically. No separate model
+file or model volume is required.
+
+To stop the application when it is running in the foreground, press:
+
+CTRL+C
+
+To run it in the background instead:
+
+docker run -d --name deepfake-detection-runtime -p 5000:5000 deepfake-detection
+
+To check the container:
+
+docker ps
+
+To view the application log:
+
+docker logs deepfake-detection-runtime
+
+To stop and remove the background container:
+
+docker rm -f deepfake-detection-runtime
+
+To use Docker Compose:
+
+docker compose up --build
+
+Stop Docker Compose with CTRL+C. To stop and remove its container:
+
+docker compose down
+
+If Docker reports that the Docker Desktop Linux engine is unavailable,
+restart Docker Desktop and try again. On Windows, the following command can
+also restart the WSL backend:
+
+wsl --shutdown
+
+After running wsl --shutdown, start Docker Desktop again.
+
+
+OPTION 2 - RUN USING THE PYTHON VIRTUAL ENVIRONMENT
+---------------------------------------------------
+
+The project environment is stored one level above this project folder:
+
+D:\git\2nd-year-AI-project-DeepFake_Ditection\Final_Project\.venv
+
+From the project folder, activate the environment:
+
+& "..\.venv\Scripts\Activate.ps1"
+
+Alternatively, do not activate the environment and run Python directly:
+
+& "..\.venv\Scripts\python.exe" -m web.app
+
+If PowerShell blocks script activation, run the Python command directly
+instead. This avoids changing the PowerShell execution policy.
+
+Install or restore the full training and research environment:
+
+& "..\.venv\Scripts\python.exe" -m pip install -r requirements.txt
+
+For the Flask inference application only, the smaller runtime dependency file
+can be used:
+
+& "..\.venv\Scripts\python.exe" -m pip install -r requirements-docker.txt
+
+Start the local Flask application:
+
+& "..\.venv\Scripts\python.exe" -m web.app
+
+Open this address in a browser:
+
+http://127.0.0.1:5000/
+
+Stop the local application with:
+
+CTRL+C
+
+
+IMPORTANT NOTES
+---------------
+
+1. Run commands from the DeepFake_Detection folder.
+2. Only one application should use port 5000 at a time.
+3. If port 5000 is already in use, stop the previous Flask or Docker
+   process before starting another one.
+4. The application rejects images where MediaPipe cannot detect a human face.
+   Such images are not evaluated by the TensorFlow model.
+5. The selected model is displayed in the web interface.
+6. The training notebooks and Kaggle dataset workflow are separate from the
+   Docker inference application.
+7. requirements.txt contains training and notebook dependencies.
+8. requirements-docker.txt contains the smaller deployment dependency set.
+
+
+COMMON PORT COMMANDS
+--------------------
+
+Find the process using port 5000:
+
+Get-NetTCPConnection -LocalPort 5000 -State Listen
+
+Check running Docker containers:
+
+docker ps
+
+Open the application after startup:
+
+start http://127.0.0.1:5000/

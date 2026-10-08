@@ -1,0 +1,10 @@
+.git
+.gitignore
+data
+archive
+notebooks
+model-wise/notebooks
+model-wise/results/*/checkpoints
+model-wise/results/*/graphs
+__pycache__
+*.pyc
