@@ -1,0 +1,24 @@
+{
+    "experiment": "Experiment 8",
+    "model": "128x128 Deeper CNN + Batch Normalization",
+    "input_size": "128x128",
+    "batch_size": 32,
+    "augmentation": "None",
+    "architecture": {
+        "block1": "Conv32 + Conv32",
+        "block2": "Conv64 + Conv64",
+        "block3": "Conv128 + Conv128",
+        "block4": "Conv256 + Conv256",
+        "block5": "Conv256",
+        "classifier": "GAP + Dense256"
+    },
+    "batch_normalization": true,
+    "dropout": 0.4,
+    "optimizer": "Adam",
+    "initial_learning_rate": 0.001,
+    "loss": "binary_crossentropy",
+    "max_epochs": 20,
+    "early_stopping_patience": 5,
+    "reduce_lr_factor": 0.2,
+    "seed": 42
+}

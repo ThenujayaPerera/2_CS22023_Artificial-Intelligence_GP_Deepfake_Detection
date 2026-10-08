@@ -1,0 +1,2 @@
+experiment,input_size,architecture,stage_1,stage_2,stage_1_best_val_accuracy,stage_1_best_val_auc,stage_2_best_val_accuracy,stage_2_best_val_auc,stage_2_best_val_precision,stage_2_best_val_recall,stage_2_best_val_loss,best_epoch
+Experiment 9 - EfficientNetB0 128x128,128x128,EfficientNetB0 + Dense(256) + Dropout(0.3),Frozen ImageNet pretrained base,Fine-tuned from layer 200,0.8232,0.9025,0.9018,0.9651,0.899,0.906,0.24536,10
