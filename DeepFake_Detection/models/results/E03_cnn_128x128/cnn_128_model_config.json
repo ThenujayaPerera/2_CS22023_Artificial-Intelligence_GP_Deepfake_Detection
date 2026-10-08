@@ -1,0 +1,32 @@
+{
+    "experiment": "Experiment 3 - CNN 128x128",
+    "dataset": "manjilkarki/deepfake-and-real-images",
+    "input_size": "128x128x3",
+    "train_images": 140002,
+    "validation_images": 39428,
+    "test_images": 10905,
+    "classes": {
+        "Fake": 0,
+        "Real": 1
+    },
+    "batch_size": 32,
+    "epochs": 10,
+    "augmentation": false,
+    "optimizer": "Adam",
+    "learning_rate": 0.001,
+    "loss": "binary_crossentropy",
+    "architecture": [
+        "Conv2D(32)",
+        "MaxPooling2D",
+        "Conv2D(64)",
+        "MaxPooling2D",
+        "Conv2D(128)",
+        "MaxPooling2D",
+        "Conv2D(256)",
+        "MaxPooling2D",
+        "GlobalAveragePooling2D",
+        "Dense(256)",
+        "Dropout(0.5)",
+        "Dense(1, sigmoid)"
+    ]
+}

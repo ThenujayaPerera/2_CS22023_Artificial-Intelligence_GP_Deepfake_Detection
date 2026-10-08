@@ -1,0 +1,11 @@
+{
+    "experiment": "cnn_256_extended",
+    "input_size": "256x256",
+    "best_epoch": 12,
+    "accuracy": 0.8446584135717561,
+    "precision": 0.8803436285538965,
+    "recall": 0.7951228523923887,
+    "f1_score": 0.8355659095321297,
+    "roc_auc": 0.9245601213070581,
+    "test_samples": 10905
+}

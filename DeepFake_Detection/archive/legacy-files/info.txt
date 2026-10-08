@@ -1,0 +1,1288 @@
+Yes. For your project, I would build it as a **proper deepfake-detection research project**, not just `train.py` + one CNN.
+
+You have **200k real/fake human-face images**, so we can build a workflow that starts with a simple CNN for understanding, then moves to stronger models and finally produces a model that your **FastAPI → React** application can use.
+
+# 1. Overall workflow
+
+The complete system should look like this:
+
+```text
+                    DATASET
+                       │
+                       ▼
+              Dataset Inspection
+                       │
+                       ▼
+                Data Cleaning
+                       │
+                       ▼
+              Face Verification
+                       │
+                       ▼
+             Identity-aware Split
+                       │
+            ┌──────────┼──────────┐
+            ▼          ▼          ▼
+          TRAIN       VAL        TEST
+            │
+            ▼
+       Preprocessing
+            │
+            ▼
+       Data Augmentation
+            │
+            ▼
+       ┌─────────────────┐
+       │   CNN MODEL     │
+       │                 │
+       │ Baseline CNN    │
+       │       ↓         │
+       │ Improved CNN    │
+       │       ↓         │
+       │ EfficientNet    │
+       └─────────────────┘
+            │
+            ▼
+         Training
+            │
+            ▼
+        Evaluation
+            │
+     ┌──────┼──────────┐
+     ▼      ▼          ▼
+ Accuracy  F1      ROC-AUC
+     │
+     ▼
+ Error Analysis
+     │
+     ▼
+ External / Unseen Test
+     │
+     ▼
+ Save Best Model
+     │
+     ▼
+ FastAPI Backend
+     │
+     ▼
+ React Frontend
+```
+
+---
+
+# 2. Project folder structure
+
+I recommend creating this on your laptop:
+
+```text
+DeepFake_Detection/
+│
+├── README.md
+├── requirements.txt
+├── .gitignore
+│
+├── data/
+│   ├── raw/
+│   │   ├── real/
+│   │   └── fake/
+│   │
+│   ├── processed/
+│   │   ├── train/
+│   │   │   ├── real/
+│   │   │   └── fake/
+│   │   │
+│   │   ├── validation/
+│   │   │   ├── real/
+│   │   │   └── fake/
+│   │   │
+│   │   └── test/
+│   │       ├── real/
+│   │       └── fake/
+│   │
+│   └── external_test/
+│
+├── notebooks/
+│   ├── 01_dataset_exploration.ipynb
+│   ├── 02_data_preparation.ipynb
+│   ├── 03_baseline_cnn.ipynb
+│   ├── 04_cnn_experiments.ipynb
+│   ├── 05_transfer_learning.ipynb
+│   └── 06_final_evaluation.ipynb
+│
+├── src/
+│   ├── config.py
+│   │
+│   ├── data/
+│   │   ├── check_dataset.py
+│   │   ├── split_dataset.py
+│   │   ├── preprocess.py
+│   │   └── augmentation.py
+│   │
+│   ├── models/
+│   │   ├── cnn.py
+│   │   ├── efficientnet.py
+│   │   └── model_factory.py
+│   │
+│   ├── training/
+│   │   ├── train.py
+│   │   └── callbacks.py
+│   │
+│   ├── evaluation/
+│   │   ├── evaluate.py
+│   │   ├── confusion_matrix.py
+│   │   ├── roc_curve.py
+│   │   └── error_analysis.py
+│   │
+│   └── inference/
+│       └── predict.py
+│
+├── models/
+│   ├── baseline_cnn.keras
+│   ├── best_cnn.keras
+│   └── final_model.keras
+│
+├── experiments/
+│   ├── experiment_01_baseline/
+│   ├── experiment_02_resolution/
+│   ├── experiment_03_deeper_cnn/
+│   └── experiment_04_efficientnet/
+│
+├── results/
+│   ├── graphs/
+│   ├── confusion_matrices/
+│   ├── roc_curves/
+│   └── experiment_results.csv
+│
+├── colab/
+│   ├── 01_dataset.ipynb
+│   ├── 02_baseline_cnn.ipynb
+│   ├── 03_experiments.ipynb
+│   └── 04_final_model.ipynb
+│
+├── backend/
+│   ├── main.py
+│   ├── inference.py
+│   ├── preprocessing.py
+│   ├── requirements.txt
+│   └── uploads/
+│
+└── frontend/
+    └── React application
+```
+
+You **don't have to create every file immediately**. Start with the important directories and add files as we implement each stage.
+
+---
+
+# 3. What each section does
+
+## `data/`
+
+Your actual dataset.
+
+Initially:
+
+```text
+data/raw/
+
+real/
+    image001.jpg
+    image002.jpg
+    ...
+
+fake/
+    image001.jpg
+    image002.jpg
+    ...
+```
+
+Don't modify your original dataset.
+
+That's why we separate:
+
+```text
+raw/
+processed/
+```
+
+`raw` = untouched original data.
+
+`processed` = data prepared for training.
+
+---
+
+# 4. `notebooks/`
+
+These are for experimentation and learning.
+
+For example:
+
+### `01_dataset_exploration.ipynb`
+
+You investigate:
+
+```text
+How many REAL?
+How many FAKE?
+Image sizes?
+Corrupted images?
+Duplicate images?
+RGB/RGBA?
+Different formats?
+```
+
+You also visualize:
+
+```text
+10 real faces
+10 fake faces
+```
+
+This is important for your university project because you can show your dataset analysis.
+
+---
+
+# 5. `src/`
+
+This contains the actual reusable Python code.
+
+Instead of putting everything inside one giant Colab notebook:
+
+```text
+train.py
+500 lines
+```
+
+we separate responsibilities.
+
+---
+
+# 6. The models we can try
+
+There are several approaches.
+
+## Approach 1 — Simple CNN
+
+This should be your **baseline**.
+
+For example:
+
+```text
+Input
+224×224×3
+   ↓
+Conv2D 32
+   ↓
+MaxPooling
+   ↓
+Conv2D 64
+   ↓
+MaxPooling
+   ↓
+Conv2D 128
+   ↓
+MaxPooling
+   ↓
+Conv2D 256
+   ↓
+MaxPooling
+   ↓
+Dense
+   ↓
+Dropout
+   ↓
+REAL / FAKE
+```
+
+This is the best place for you to learn:
+
+* convolution
+* filters
+* pooling
+* feature maps
+* activation
+* dropout
+* dense layers
+
+---
+
+# 7. Approach 2 — Deeper CNN
+
+Then we can experiment:
+
+```text
+CNN-3
+
+3 convolution blocks
+```
+
+versus
+
+```text
+CNN-4
+
+4 convolution blocks
+```
+
+versus
+
+```text
+CNN-5
+
+5 convolution blocks
+```
+
+Your experiment table becomes:
+
+| Model | Resolution | Conv blocks | Accuracy | F1 | ROC-AUC |
+| ----- | ---------: | ----------: | -------: | -: | ------: |
+| CNN-3 |        128 |           3 |          |    |         |
+| CNN-4 |        128 |           4 |          |    |         |
+| CNN-5 |        128 |           5 |          |    |         |
+| CNN-3 |        224 |           3 |          |    |         |
+| CNN-4 |        224 |           4 |          |    |         |
+| CNN-5 |        224 |           5 |          |    |         |
+
+This gives you actual evidence rather than saying:
+
+> "224×224 is better."
+
+---
+
+# 8. Approach 3 — Transfer learning
+
+This is the approach I would seriously consider for your **final model**.
+
+Instead of designing hundreds of convolutional layers ourselves:
+
+```text
+Your image
+     ↓
+Pretrained CNN
+     ↓
+Feature extraction
+     ↓
+Your classifier
+     ↓
+REAL / FAKE
+```
+
+Possible architectures include:
+
+* EfficientNet
+* ResNet
+* ConvNeXt
+* Xception
+
+For your first serious experiment, I'd use **EfficientNet**.
+
+Why?
+
+Because you have a large dataset, and transfer learning gives you a strong starting feature extractor while still allowing you to fine-tune it for your particular face dataset.
+
+---
+
+# 9. Approach 4 — Fine-tuning
+
+Transfer learning doesn't have to stop at:
+
+```text
+Pretrained model
+      ↓
+Frozen
+      ↓
+Classifier
+```
+
+We can eventually do:
+
+```text
+Pretrained model
+      ↓
+Train classifier
+      ↓
+Unfreeze selected deeper layers
+      ↓
+Train with small learning rate
+```
+
+This is called **fine-tuning**.
+
+For example:
+
+```text
+EfficientNet
+
+████████████████████
+↑ frozen            ↑ fine-tuned
+```
+
+Then the model can adapt its features to deepfake artifacts.
+
+---
+
+# 10. Approach 5 — Face-focused CNN
+
+Since your task is specifically human faces, another important approach is:
+
+```text
+Original image
+       ↓
+Face detector
+       ↓
+Face bounding box
+       ↓
+Face crop
+       ↓
+Resize
+       ↓
+CNN
+```
+
+For example:
+
+```text
+Original
+┌─────────────────────────┐
+│                         │
+│        ┌─────────┐      │
+│        │  FACE   │      │
+│        └─────────┘      │
+│                         │
+└─────────────────────────┘
+             ↓
+       Face crop
+             ↓
+       224 × 224
+```
+
+This prevents the CNN from learning irrelevant background information.
+
+---
+
+# 11. Approach 6 — Face + surrounding region
+
+Don't necessarily crop only the exact face.
+
+Deepfake artifacts can occur around:
+
+* jaw
+* hairline
+* ears
+* cheeks
+* face boundaries
+
+So we can experiment with:
+
+```text
+Option A
+
+Exact face
+```
+
+and:
+
+```text
+Option B
+
+Face + surrounding area
+```
+
+This can become another research experiment.
+
+---
+
+# 12. Approach 7 — Different image resolutions
+
+This is your earlier question.
+
+We can explicitly test:
+
+```text
+128 × 128
+160 × 160
+224 × 224
+```
+
+Don't assume one is best.
+
+Your experiment could be:
+
+```text
+                    CNN
+                     │
+          ┌──────────┼──────────┐
+          ↓          ↓          ↓
+       128×128    160×160    224×224
+          │          │          │
+          └──────────┼──────────┘
+                     ↓
+                Compare
+```
+
+---
+
+# 13. Approach 8 — Data augmentation
+
+Your training images can be slightly modified during training.
+
+For example:
+
+```text
+Original
+   │
+   ├── horizontal flip
+   ├── slight rotation
+   ├── slight zoom
+   ├── brightness change
+   ├── contrast change
+   └── slight compression/blur
+```
+
+The important word is **slight**.
+
+We don't want to destroy deepfake artifacts.
+
+---
+
+# 14. Approach 9 — Class balancing
+
+First determine:
+
+```text
+REAL = ?
+FAKE = ?
+```
+
+If:
+
+```text
+REAL = 100,000
+FAKE = 100,000
+```
+
+that's already balanced.
+
+If:
+
+```text
+REAL = 180,000
+FAKE = 20,000
+```
+
+then we'll need to deal with class imbalance.
+
+Possible techniques:
+
+```text
+Class weights
+Balanced sampling
+Oversampling
+```
+
+---
+
+# 15. Approach 10 — External testing
+
+This is **very important** for your final project.
+
+Imagine:
+
+```text
+Training dataset
+
+Dataset A
+   ↓
+CNN
+```
+
+Your model gets:
+
+```text
+Accuracy = 98%
+```
+
+That doesn't necessarily mean it will detect completely different deepfakes.
+
+So we should eventually test:
+
+```text
+Training dataset
+       ↓
+Model
+       ↓
+NEW dataset
+       ↓
+Performance
+```
+
+This tells you whether the model generalizes.
+
+For a deepfake detector, this is much more meaningful than only achieving a high score on the same dataset distribution.
+
+---
+
+# 16. What I recommend for YOUR project
+
+I would **not** immediately jump to the most complicated architecture.
+
+Use a staged approach:
+
+```text
+                    YOUR PROJECT
+                         │
+                         ▼
+                Stage 1: Dataset
+                         │
+                         ▼
+              Stage 2: Simple CNN
+                         │
+                         ▼
+           Stage 3: CNN experiments
+                         │
+              ┌──────────┼──────────┐
+              ▼          ▼          ▼
+            128        160        224
+              │          │          │
+              └──────────┼──────────┘
+                         ▼
+              Stage 4: Augmentation
+                         │
+                         ▼
+             Stage 5: Transfer Learning
+                         │
+                         ▼
+                  EfficientNet
+                         │
+                         ▼
+                Stage 6: Fine-tuning
+                         │
+                         ▼
+              Stage 7: Evaluation
+                         │
+                         ▼
+             Stage 8: External Test
+                         │
+                         ▼
+                 Final Model
+```
+
+This is much stronger academically than simply saying:
+
+> "We trained a CNN on 200k images."
+
+You can explain **why** you selected your final architecture.
+
+---
+
+# 17. The actual Colab workflow
+
+Now let's talk about training.
+
+You don't need to put the 200k images inside your laptop and upload them every time.
+
+I'd use:
+
+```text
+Google Drive
+      │
+      ▼
+Dataset
+      │
+      ▼
+Google Colab
+      │
+      ▼
+GPU
+      │
+      ▼
+Training
+      │
+      ▼
+Model
+      │
+      ▼
+Save .keras
+```
+
+---
+
+# 18. Google Drive structure
+
+Create:
+
+```text
+MyDrive/
+│
+└── DeepFake_Detection/
+    │
+    ├── dataset/
+    │   ├── real/
+    │   └── fake/
+    │
+    ├── models/
+    │
+    ├── results/
+    │
+    └── experiments/
+```
+
+You can later save your trained model:
+
+```text
+final_deepfake_model.keras
+```
+
+---
+
+# 19. Start Colab
+
+Open Google Colab and create:
+
+```text
+deepfake_cnn_training.ipynb
+```
+
+Then:
+
+### Step 1 — Enable GPU
+
+In Colab:
+
+```text
+Runtime
+   ↓
+Change runtime type
+   ↓
+Hardware accelerator
+   ↓
+GPU
+```
+
+Then check:
+
+```python
+import tensorflow as tf
+
+print(tf.config.list_physical_devices("GPU"))
+```
+
+You should see a GPU device.
+
+---
+
+# 20. Mount Google Drive
+
+```python
+from google.colab import drive
+
+drive.mount('/content/drive')
+```
+
+Then your dataset might be:
+
+```python
+DATASET_PATH = "/content/drive/MyDrive/DeepFake_Detection/dataset"
+```
+
+---
+
+# 21. First thing: inspect the dataset
+
+Before training:
+
+```text
+DON'T
+ ↓
+Immediately train 200k images
+
+DO
+ ↓
+Inspect dataset
+ ↓
+Clean dataset
+ ↓
+Check balance
+ ↓
+Check duplicates
+ ↓
+Check image sizes
+ ↓
+Then train
+```
+
+We should create:
+
+```text
+01_dataset_exploration.ipynb
+```
+
+and investigate the data first.
+
+---
+
+# 22. Dataset split
+
+Ideally:
+
+```text
+200,000
+
+TRAIN
+80%
+≈ 160,000
+
+VALIDATION
+10%
+≈ 20,000
+
+TEST
+10%
+≈ 20,000
+```
+
+But there is a very important issue:
+
+### Identity leakage
+
+If the same person's face appears in training and testing:
+
+```text
+TRAIN
+Person A
+
+TEST
+Person A
+```
+
+your test score can be misleading.
+
+We want:
+
+```text
+TRAIN
+Person A
+Person B
+Person C
+...
+
+VALIDATION
+Person X
+Person Y
+...
+
+TEST
+Person Z
+Person W
+...
+```
+
+If your dataset doesn't contain identity information, we'll need to inspect what metadata or naming structure it provides and use the best leakage-control strategy available.
+
+---
+
+# 23. Preprocessing
+
+For the first experiment:
+
+```text
+Image
+ ↓
+RGB
+ ↓
+224×224
+ ↓
+Normalization
+ ↓
+CNN
+```
+
+For example:
+
+```python
+IMG_SIZE = (224, 224)
+BATCH_SIZE = 32
+```
+
+---
+
+# 24. Baseline CNN
+
+Our first model could be:
+
+```text
+224×224×3
+       ↓
+Conv2D(32)
+       ↓
+MaxPooling
+       ↓
+Conv2D(64)
+       ↓
+MaxPooling
+       ↓
+Conv2D(128)
+       ↓
+MaxPooling
+       ↓
+Conv2D(256)
+       ↓
+MaxPooling
+       ↓
+GlobalAveragePooling
+       ↓
+Dense(256)
+       ↓
+Dropout
+       ↓
+Dense(1)
+       ↓
+Sigmoid
+       ↓
+REAL / FAKE
+```
+
+I'd use **GlobalAveragePooling** rather than immediately using a huge `Flatten()` layer. It keeps the classifier smaller and can reduce overfitting.
+
+---
+
+# 25. Training
+
+We then train with:
+
+```text
+Binary Cross Entropy
+        +
+Adam
+        +
+Early Stopping
+        +
+Learning-rate reduction
+```
+
+Conceptually:
+
+```python
+model.compile(
+    optimizer=...,
+    loss="binary_crossentropy",
+    metrics=[
+        "accuracy",
+        precision,
+        recall,
+        AUC
+    ]
+)
+```
+
+---
+
+# 26. What we save after training
+
+Don't only save the model.
+
+Save:
+
+```text
+models/
+│
+├── baseline_cnn.keras
+├── best_cnn.keras
+└── final_model.keras
+```
+
+And:
+
+```text
+results/
+│
+├── training_accuracy.png
+├── training_loss.png
+├── confusion_matrix.png
+├── roc_curve.png
+└── experiment_results.csv
+```
+
+This gives you material for your **progress report, final report, and presentation**.
+
+---
+
+# 27. Evaluation
+
+After training:
+
+```text
+Test images
+      ↓
+Model
+      ↓
+Predictions
+      ↓
+REAL / FAKE
+```
+
+Calculate:
+
+### Accuracy
+
+```text
+Correct / Total
+```
+
+### Precision
+
+```text
+Predicted fake
+        ↓
+How many actually fake?
+```
+
+### Recall
+
+```text
+Actual fake
+     ↓
+How many detected?
+```
+
+### F1
+
+Balances precision and recall.
+
+### ROC-AUC
+
+Measures the model's ability to distinguish the two classes across thresholds.
+
+---
+
+# 28. Confusion matrix
+
+You'll get something like:
+
+```text
+                    PREDICTED
+                 REAL       FAKE
+
+ACTUAL REAL      9500       500
+
+ACTUAL FAKE       300      9700
+```
+
+From this we can understand exactly what the model is doing.
+
+---
+
+# 29. Error analysis
+
+This is something I strongly recommend for your university project.
+
+Find images where:
+
+```text
+REAL → predicted FAKE
+```
+
+and:
+
+```text
+FAKE → predicted REAL
+```
+
+Then display them.
+
+You may discover patterns such as:
+
+```text
+Low resolution
+Strong compression
+Side faces
+Dark lighting
+Unusual poses
+Certain manipulation methods
+```
+
+This helps you improve the model intelligently rather than randomly changing layers.
+
+---
+
+# 30. Experiment tracking
+
+Create:
+
+```text
+results/experiment_results.csv
+```
+
+For example:
+
+| Experiment | Resolution | Model                   | Augmentation | Accuracy | F1 | AUC |
+| ---------- | ---------: | ----------------------- | ------------ | -------: | -: | --: |
+| E01        |        128 | CNN-3                   | No           |          |    |     |
+| E02        |        224 | CNN-3                   | No           |          |    |     |
+| E03        |        224 | CNN-4                   | No           |          |    |     |
+| E04        |        224 | CNN-4                   | Yes          |          |    |     |
+| E05        |        224 | EfficientNet            | Yes          |          |    |     |
+| E06        |        224 | Fine-tuned EfficientNet | Yes          |          |    |     |
+
+This is **excellent research methodology**.
+
+---
+
+# 31. What should be your final model?
+
+At the moment, I would structure your investigation like this:
+
+### Baseline
+
+**Custom CNN**
+
+Purpose:
+
+> Learn and establish a baseline.
+
+### Stronger model
+
+**EfficientNet transfer learning**
+
+Purpose:
+
+> Compare a pretrained architecture against your custom CNN.
+
+### Final candidate
+
+**Fine-tuned EfficientNet**
+
+Purpose:
+
+> Adapt the pretrained features to your real/fake human-face dataset.
+
+Then the data decides which performs better.
+
+I would **not decide beforehand that a particular model is the winner**. Your experiments should determine that.
+
+---
+
+# 32. What NOT to do
+
+Avoid this:
+
+```text
+200k images
+ ↓
+224×224
+ ↓
+20-layer CNN
+ ↓
+100 epochs
+ ↓
+99% accuracy
+ ↓
+DONE
+```
+
+That's not a reliable deepfake detector.
+
+Instead:
+
+```text
+Dataset analysis
+       ↓
+Leakage prevention
+       ↓
+Baseline
+       ↓
+Controlled experiments
+       ↓
+Evaluation
+       ↓
+Error analysis
+       ↓
+Improvement
+       ↓
+External testing
+       ↓
+Final model
+```
+
+---
+
+# 33. Your development stages
+
+I suggest we actually build this together in this order:
+
+```text
+PHASE 1
+Project folders
+        ↓
+PHASE 2
+Dataset inspection
+        ↓
+PHASE 3
+Dataset cleaning
+        ↓
+PHASE 4
+Train/validation/test split
+        ↓
+PHASE 5
+Build first CNN
+        ↓
+PHASE 6
+Train first CNN in Colab
+        ↓
+PHASE 7
+Evaluate
+        ↓
+PHASE 8
+128 vs 224 experiment
+        ↓
+PHASE 9
+3 vs 4 vs 5 CNN blocks
+        ↓
+PHASE 10
+Augmentation experiments
+        ↓
+PHASE 11
+EfficientNet transfer learning
+        ↓
+PHASE 12
+Fine-tuning
+        ↓
+PHASE 13
+External testing
+        ↓
+PHASE 14
+Select final model based on evidence
+        ↓
+PHASE 15
+Export .keras
+        ↓
+PHASE 16
+FastAPI inference
+        ↓
+PHASE 17
+React integration
+```
+
+### The important part
+
+**Don't start training the 200k images yet.**
+
+Your **first task should be dataset analysis and splitting**. With a dataset this large, mistakes in the dataset—especially duplicate images or the same identity appearing in both train and test—can make a seemingly excellent model misleading.
+
+So the immediate next deliverable should be:
+
+```text
+DeepFake_Detection/
+│
+├── data/
+├── notebooks/
+├── src/
+├── models/
+├── experiments/
+├── results/
+├── colab/
+├── backend/
+└── frontend/
+```
+
+Then we can build **`01_dataset_exploration.ipynb`** and check exactly what your 200k dataset looks like before designing the CNN.

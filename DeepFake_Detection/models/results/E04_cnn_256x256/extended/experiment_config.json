@@ -1,0 +1,32 @@
+{
+    "experiment": "CNN 256x256 Extended Training",
+    "dataset": "manjilkarki/deepfake-and-real-images",
+    "input_size": "256x256",
+    "batch_size": 32,
+    "maximum_epochs": 30,
+    "optimizer": "Adam",
+    "initial_learning_rate": 0.001,
+    "loss": "binary_crossentropy",
+    "augmentation": false,
+    "architecture": [
+        "Conv2D 32 + MaxPooling",
+        "Conv2D 64 + MaxPooling",
+        "Conv2D 128 + MaxPooling",
+        "Conv2D 256 + MaxPooling",
+        "GlobalAveragePooling2D",
+        "Dense 256",
+        "Dropout 0.5",
+        "Dense 1 Sigmoid"
+    ],
+    "early_stopping": {
+        "monitor": "val_loss",
+        "patience": 5,
+        "restore_best_weights": true
+    },
+    "reduce_lr": {
+        "monitor": "val_loss",
+        "factor": 0.2,
+        "patience": 2
+    },
+    "purpose": "Investigate whether extended training improves the 256x256 CNN"
+}

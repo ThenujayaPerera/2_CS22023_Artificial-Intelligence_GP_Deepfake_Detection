@@ -1,0 +1,13 @@
+{
+    "experiment": "CNN 128x128",
+    "input_size": "128x128",
+    "test_accuracy": 0.8956441999082989,
+    "test_precision": 0.8973786949247072,
+    "test_recall": 0.8917421023462035,
+    "test_f1": 0.8945515196441809,
+    "test_roc_auc": 0.9636723499804697,
+    "best_epoch": 8,
+    "best_val_loss": 0.17525,
+    "best_val_accuracy": 0.9336,
+    "best_val_auc": 0.9823
+}

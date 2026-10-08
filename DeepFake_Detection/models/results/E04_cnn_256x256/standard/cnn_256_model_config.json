@@ -1,0 +1,31 @@
+{
+    "experiment": "CNN 256x256",
+    "dataset": "manjilkarki/deepfake-and-real-images",
+    "train_images": 140002,
+    "validation_images": 39428,
+    "test_images": 10905,
+    "total_images": 190335,
+    "input_size": "256x256x3",
+    "batch_size": 32,
+    "augmentation": false,
+    "architecture": [
+        "Conv2D(32, 3x3, ReLU)",
+        "MaxPooling2D(2x2)",
+        "Conv2D(64, 3x3, ReLU)",
+        "MaxPooling2D(2x2)",
+        "Conv2D(128, 3x3, ReLU)",
+        "MaxPooling2D(2x2)",
+        "Conv2D(256, 3x3, ReLU)",
+        "MaxPooling2D(2x2)",
+        "GlobalAveragePooling2D",
+        "Dense(256, ReLU)",
+        "Dropout(0.5)",
+        "Dense(1, Sigmoid)"
+    ],
+    "optimizer": "Adam",
+    "learning_rate": 0.001,
+    "loss": "binary_crossentropy",
+    "planned_epochs": 10,
+    "early_stopping_patience": 5,
+    "reduce_lr_factor": 0.2
+}

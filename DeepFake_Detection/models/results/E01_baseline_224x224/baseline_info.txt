@@ -1,0 +1,51 @@
+
+DEEPFAKE DETECTION - BASELINE CNN
+=================================
+
+Dataset:
+manjilkarki/deepfake-and-real-images
+
+Dataset size:
+Train:      140002
+Validation: 39428
+Test:       10905
+Total:      190335
+
+Classes:
+Fake = 0
+Real = 1
+
+Original image size:
+256 x 256
+
+Model input:
+224 x 224 x 3
+
+Batch size:
+32
+
+Model:
+Conv2D 32
+MaxPooling
+Conv2D 64
+MaxPooling
+Conv2D 128
+MaxPooling
+Conv2D 256
+MaxPooling
+GlobalAveragePooling
+Dense 256
+Dropout 0.5
+Dense 1 Sigmoid
+
+Optimizer:
+Adam
+
+Initial learning rate:
+0.001
+
+Loss:
+Binary Crossentropy
+
+Planned epochs:
+10
