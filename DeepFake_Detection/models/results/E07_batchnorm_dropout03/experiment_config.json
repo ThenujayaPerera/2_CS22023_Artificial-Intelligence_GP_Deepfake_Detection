@@ -1,0 +1,17 @@
+{
+    "experiment": "Experiment 7",
+    "model": "128x128 CNN + Batch Normalization + Dropout",
+    "input_size": "128x128",
+    "dropout": 0.3,
+    "batch_size": 32,
+    "optimizer": "Adam",
+    "initial_learning_rate": 0.001,
+    "loss": "binary_crossentropy",
+    "max_epochs": 20,
+    "early_stopping": true,
+    "early_stopping_patience": 5,
+    "reduce_lr": true,
+    "reduce_lr_factor": 0.2,
+    "seed": 42,
+    "augmentation": "None"
+}
