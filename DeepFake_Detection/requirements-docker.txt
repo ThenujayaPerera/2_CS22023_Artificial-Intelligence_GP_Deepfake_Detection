@@ -1,7 +1,15 @@
-# Runtime dependencies for the Flask + MediaPipe inference application.
+
+# Runtime dependencies for the DeepGuard AI Flask application.
+
+# Deep learning
 tensorflow>=2.16,<2.17
 numpy>=1.23,<2
+
+# Web application
 Flask>=3.0,<4
+gunicorn>=22.0,<24.0
+
+# Image processing and face detection
 Pillow>=10.0
 opencv-contrib-python>=4.8,<5
 mediapipe==0.10.21
