@@ -1,53 +1,260 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DeepFake Detection</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="DeepGuard AI — CNN-based deepfake face image analysis.">
+  <title>DeepGuard AI | See Beyond the Image</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='script.js') }}" defer></script>
 </head>
 <body>
-  <main class="shell">
-    <section class="hero">
-      <p class="eyebrow">AI IMAGE ANALYSIS</p>
-      <h1>DeepFake Detection</h1>
-      <p class="subtitle">Upload a clear face image and check whether it appears real or AI-generated.</p>
-      <p class="model">Active model: <strong>{{ model_name }}</strong> · Threshold: {{ "%.2f"|format(threshold) }}</p>
+
+  <!-- NAVIGATION -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a class="brand" href="#home" aria-label="DeepGuard AI Home">
+        <span class="brand-icon">◆</span>
+        <span>DeepGuard <span class="accent">AI</span></span>
+      </a>
+
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#detect" class="nav-cta">Try Detection →</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- HOME -->
+    <section class="hero container" id="home">
+      <div class="hero-glow"></div>
+      <span class="eyebrow hero-badge">AI-POWERED IMAGE FORENSICS</span>
+
+      <h1>See Beyond <span class="gradient-text">the Image.</span></h1>
+
+      <p class="hero-description">
+        Explore the authenticity of facial images with DeepGuard AI,
+        a deepfake detection system powered by a convolutional neural network.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#detect" class="primary-link">Start Detection <span>→</span></a>
+        <a href="#how-it-works" class="secondary-link">How It Works</a>
+      </div>
+
+      <div class="hero-model">
+        <span class="live-dot"></span>
+        Active model: <strong>{{ model_name }}</strong>
+        <span class="model-divider">|</span>
+        Threshold: <strong>{{ "%.2f"|format(threshold) }}</strong>
+      </div>
     </section>
 
-    <section class="card">
-      <form id="upload-form">
-        <label id="drop-zone" class="drop-zone" for="image-input">
-          <span class="upload-icon">↑</span>
-          <strong>Drop an image here</strong>
-          <span>or click to browse · JPG, PNG, WEBP</span>
-          <input id="image-input" name="image" type="file" accept=".jpg,.jpeg,.png,.webp" hidden>
-        </label>
-        <div id="preview-area" class="preview-area hidden">
-          <img id="uploaded-preview" alt="Uploaded preview">
-          <span id="file-name"></span>
+    <!-- ABOUT -->
+    <section class="section container" id="about">
+      <div class="section-intro">
+        <span class="eyebrow">ABOUT DEEPGUARD</span>
+        <h2>Understanding what lies beneath.</h2>
+        <p>
+          AI-generated facial images are becoming increasingly realistic.
+          DeepGuard AI is a student-developed project that investigates
+          deepfake detection through image preprocessing and CNN-based
+          classification.
+        </p>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature-card">
+          <div class="feature-icon">◎</div>
+          <h3>Face Preparation</h3>
+          <p>
+            Detects and prepares a face region before sending the image
+            to the classification model.
+          </p>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon">◇</div>
+          <h3>CNN Analysis</h3>
+          <p>
+            Uses the trained convolutional neural network to evaluate
+            visual patterns in the prepared image.
+          </p>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon">▥</div>
+          <h3>Clear Results</h3>
+          <p>
+            Presents the predicted class, confidence, fake probability
+            and processed model input.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section process-section" id="how-it-works">
+      <div class="container">
+        <div class="section-intro centered">
+          <span class="eyebrow">THE PROCESS</span>
+          <h2>Three steps to an assessment.</h2>
+          <p>From image selection to the model's prediction.</p>
         </div>
-        <button id="analyze-button" type="submit" disabled>Analyze image</button>
-      </form>
-      <div id="status" class="status" role="status"></div>
+
+        <div class="steps-grid">
+          <article class="step-card">
+            <span class="step-number">01</span>
+            <h3>Upload an image</h3>
+            <p>Select or drag and drop a JPG, PNG or WEBP image containing a face.</p>
+          </article>
+
+          <article class="step-card">
+            <span class="step-number">02</span>
+            <h3>AI processing</h3>
+            <p>The system prepares the detected face and evaluates it with the CNN.</p>
+          </article>
+
+          <article class="step-card">
+            <span class="step-number">03</span>
+            <h3>View your result</h3>
+            <p>See the model's REAL or FAKE prediction and supporting output.</p>
+          </article>
+        </div>
+      </div>
     </section>
 
-    <section id="result" class="result-grid hidden">
-      <div class="card image-card">
-        <h2>Model input</h2>
-        <img id="processed-image" alt="Face crop sent to the model">
-        <p id="face-info"></p>
+    <!-- DETECTION TOOL -->
+    <section class="section container" id="detect">
+      <div class="section-intro centered">
+        <span class="eyebrow">DETECTION STUDIO</span>
+        <h2>Analyse your image.</h2>
+        <p>Upload one clear facial image to begin.</p>
       </div>
-      <div id="result-card" class="card result-card">
-        <p class="eyebrow">MODEL PREDICTION</p>
-        <h2 id="prediction-label"></h2>
-        <p class="confidence">Confidence: <strong id="confidence"></strong></p>
-        <div class="bar"><span id="confidence-bar"></span></div>
-        <p>Fake probability: <strong id="fake-probability"></strong></p>
-        <p class="small">Model: <span id="result-model"></span></p>
+
+      <div class="upload-section">
+        <div class="card-heading">
+          <div>
+            <span class="eyebrow">STEP 01</span>
+            <h3>Upload your image</h3>
+          </div>
+          <span class="small-tag">Image Analysis</span>
+        </div>
+
+        <form id="upload-form">
+          <label id="drop-zone" class="drop-zone" for="image-input">
+            <span class="upload-icon">↑</span>
+            <strong>Drag &amp; drop your image here</strong>
+            <span>or click anywhere to browse your files</span>
+            <span class="file-types">JPG · JPEG · PNG · WEBP</span>
+
+            <input
+              id="image-input"
+              name="image"
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp"
+              hidden
+            >
+          </label>
+
+          <div id="preview-area" class="preview-area hidden">
+            <div class="preview-heading">
+              <h4>Selected image</h4>
+              <span class="ready-badge">Ready for analysis</span>
+            </div>
+            <div class="preview-content">
+              <img id="uploaded-preview" alt="Preview of selected image">
+              <span id="file-name"></span>
+            </div>
+          </div>
+
+          <button id="analyze-button" type="submit" disabled>
+            Analyse Image <span class="button-arrow">→</span>
+          </button>
+        </form>
+
+        <div id="status" class="status" role="status" aria-live="polite"></div>
       </div>
+
+      <!-- ACTUAL MODEL RESULTS -->
+      <section id="result" class="results-section hidden" aria-label="Analysis results">
+        <div class="card-heading">
+          <div>
+            <span class="eyebrow">STEP 02</span>
+            <h3>Analysis results</h3>
+          </div>
+          <span class="small-tag">CNN Prediction</span>
+        </div>
+
+        <div class="result-grid">
+          <article class="result-panel">
+            <div class="panel-heading">
+              <h4>Analysed face</h4>
+              <span>Model input</span>
+            </div>
+
+            <div class="processed-image-container">
+              <img id="processed-image" alt="Face crop analysed by the model">
+            </div>
+
+            <p id="face-info" class="face-info"></p>
+          </article>
+
+          <article id="result-card" class="result-panel prediction-panel">
+            <span class="eyebrow">DETECTION RESULT</span>
+            <h3 id="prediction-label"></h3>
+
+            <div class="confidence-heading">
+              <span>Prediction confidence</span>
+              <strong id="confidence"></strong>
+            </div>
+
+            <div class="bar"><span id="confidence-bar"></span></div>
+
+            <div class="result-details">
+              <div class="detail-row">
+                <span>Fake probability</span>
+                <strong id="fake-probability"></strong>
+              </div>
+              <div class="detail-row">
+                <span>Model used</span>
+                <strong id="result-model"></strong>
+              </div>
+            </div>
+
+            <p class="result-disclaimer">
+              This is a model-generated assessment, not definitive proof
+              that an image is authentic or manipulated.
+            </p>
+          </article>
+        </div>
+      </section>
     </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div>
+          <div class="footer-brand">◆ DeepGuard AI</div>
+          <p>See beyond the image.</p>
+        </div>
+        <div class="footer-links">
+          <a href="#home">Home</a>
+          <a href="#about">About</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#detect">Detect</a>
+        </div>
+      </div>
+      <p class="footer-bottom">
+        Developed for the Essentials of Artificial Intelligence Group Project.
+      </p>
+    </footer>
+
   </main>
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
